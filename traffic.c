@@ -6,18 +6,18 @@ int count = 0;
 
 void traffic_init(void)
 {
-    SYSCTL->RCGCGPIO |= 0x02;   // enable clock to GPIOF & D
+    SYSCTL->RCGCGPIO |= 0x02;   // enable clock to GPIOB
     while ((SYSCTL->RCGCGPIO&0x02)==0){}
-    GPIOD->DIR |= 0x3F;
-    GPIOD->DEN |= 0x3F;
+    GPIOB->DIR |= 0x3F;
+    GPIOB->DEN |= 0x3F;
 }
 
-void SysTick_Init(void)
+void SysTick_init(void)
 {
     SysTick->CTRL = 0; // 1) disable SysTick during setup
-    SysTick->LOAD = 0x00FFFFFF; // 2) maximum reload value
+    SysTick->LOAD = 9999999; // should interrupt every second w/ 10MHz clock
     SysTick->VAL = 0; // 3) any write to CURRENT clears it
-    SysTick->CTRL = 0x00000005; // 4) enable SysTick with core clock
+    SysTick->CTRL = 0x00000007; // 4) enable SysTick with core clock
 	
 	__enable_irq();
 }
@@ -36,7 +36,7 @@ void PLL_init(void)
 }
 
 void SysTick_Handler(void) {
-	count++;
+	count++; // add 1 to number of interrupt
 	switch (count) {
 		case 1:
 			Green_Red();
