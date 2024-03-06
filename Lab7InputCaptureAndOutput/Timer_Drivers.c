@@ -1,4 +1,5 @@
 #define PF4(*((volatile unit32_t*)0x4000543C))
+#include "TM4C123GH6PM.h"
 
 void TogglePF4(void){PF4^=0x10;}
 
@@ -9,6 +10,27 @@ SYSCTL->RCGCGPIO |=0x20;
 while((SYSCTL->PRGPIO &0x20)==0){}
 GPIOF->DIR |= 0x10;
 GPIOF->DEN |= 0x10;
+}
+
+void Timer2A_Init(void(*task)(void), uint32_t period)
+{
+    SYSCTL_RCGCTIMER_R |= 0x04; // 0) activate timer2
+    //PeriodicTask = task; // user function
+    TIMER2_CTL_R = 0x00000000; // 1) disable timer2A during setup
+    TIMER2_CFG_R = 0x00000000; // 2) configure for 32-bit mode
+    TIMER2_TAMR_R = 0x00000002; // 3) configure for periodic mode
+    TIMER2_TAILR_R = period-1; // 4) reload value
+    TIMER2_TAPR_R = 0; // 5) bus clock resolution
+    TIMER2_ICR_R = 0x00000001; // 6) clear timer2A timeout flag
+    TIMER2_IMR_R = 0x00000001; // 7) arm timeout interrupt
+    NVIC_PRI5_R = (NVIC_PRI5_R&0x00FFFFFF)|0x80000000; // 8) priority 4
+    NVIC_EN0_R = 1<<23; // 9) enable IRQ 23 in NVIC
+    TIMER2_CTL_R = 0x00000001; // 10) enable timer2A
+    EnableInterrupts();
+}
+void Timer2A_Handler(void){
+TIMER2_ICR_R = 0x00000001; // acknowledge timer2A timeout
+//(*PeriodicTask)(); // execute user task
 }
 
 void Timer0A_Init(void)
@@ -55,14 +77,31 @@ void Timer1A_Init(void)
     __enable_irq(); /* global enable IRQs */
 }
 
+void PortA_init(void)
+{
+    SYSCTL->RCGCGPIO |=0x01;
+    while ((SYSCTL->GCGPIO&0x01)==0){}
+    GPIOA->DIR|=0x01;
+    GPIOA->DEN|=0x01;
+}
+
+void PB4_6_init(void)
+{
+    SYSCTL->RCGCGPIO |=0x02;
+    while((SYSCTL->PRGPIO &0x02)==0){}
+    GPIOF->DIR &= ~0x50;
+    GPIOF->DEN &= ~0x50;
+}
+
+int LED_Status(void)
+{
+    return (GPIOA->DIR & 0x01);
+}
+
 int main(void)
 {
     PF4_init();
     Timer2A_init(&TogglePF4,80000);
     while (1)
-    {
-
-
-
-    }
+    {}
 }
