@@ -28,6 +28,8 @@ void SSI0_Write(unsigned char data) // output port expander function
 
 unsigned char SSI0_Read(void) // input port expander function
 {
+	GPIOE->DATA &= ~0x08;
+	GPIOE->DATA |= 0x08;
 	while((SSI0->SR & 0x01) == 0) {};/* wait until FIFO empty */
 		SSI0->DR = 0; /* trigger 8 SCK pulses to shift in data */
 	while((SSI0->SR & 0x04) == 0) {}; /* wait until FIFO not empty */
