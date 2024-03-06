@@ -1,4 +1,5 @@
-#include "TM4C123GH6PM.h"
+#include "LED_Display.h"
+#include "delay.h"
 
 unsigned char num[16][5]={
     {0xF7, 0xED, 0xDD, 0xBD, 0x7F}, // '0'
@@ -19,5 +20,30 @@ unsigned char num[16][5]={
     {0xF7, 0xEC, 0xDF, 0xBC, 0x7C}  // 'F'
 };
 
-void LED_Display_init(void);
-void displayDigit(unsigned char num[i][j]);
+
+//PF1-PF4 and PD0-PD3 initialized for output
+//inputs: none
+//outputs: none
+void LED_Display_init(void)
+{
+    SYSCTL->RCGCGPIO |= 0x28;   // enable clock to GPIOF & D
+    while ((SYSCTL->RCGCGPIO&0x28)==0){}
+    GPIOD->DIR |= 0x0F;
+    GPIOD->DEN |= 0x0F;
+    GPIOF->DIR |= 0x1E;
+    GPIOF->DEN |= 0x1E;
+}
+
+// Function to display a hex digit
+//inputs:hex value you want to display
+//outputs: none
+void displayDigit(char hex) 
+{
+	for (int i=0;i<5;i++)
+	{
+		//shifts PF to ports 1-4 and inverts it because of the hex inverter
+		GPIOF->DATA = ~((num[hex][i] & 0xF0) >> 3);
+		GPIOD->DATA = ~(num[hex][i] & 0x0F);
+		delayMs(1);		
+	}
+}
