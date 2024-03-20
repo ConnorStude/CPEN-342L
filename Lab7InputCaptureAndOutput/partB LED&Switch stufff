@@ -1,0 +1,25 @@
+#include "TM4C123GH6PM.h"
+#include "LEDandSwitches.h"
+
+void LEDPortInit(void)
+{
+    SYSCTL->RCGCGPIO |=0x20; //enable clock for PF
+    while((SYSCTL->RCGCGPIO&0x20)==0){}
+    GPIOF->DIR |= 0x04;         
+    GPIOF->DEN |= 0x04; 
+}
+
+void SwitchInit(void)
+{
+	  SYSCTL->RCGCGPIO |=0x20; 
+    while((SYSCTL->RCGCGPIO&0x20)==0){}
+    GPIOF->DIR &= ~0x1E;         
+    GPIOF->DEN &= ~0x1E; 	
+}
+
+void turnOn (void)
+{
+	if ((GPIOF->DATA & 0x10)==1)
+		GPIOF->DATA = (GPIOF->DATA|0x04);
+	
+}
