@@ -23,6 +23,7 @@ int main(void) {
 		if (updateFlag==1) {
 			int int_realtime = time / 50000;
 			intToChar(int_realtime,str);
+			LCD_command(0x01);
 			LCD_command(0x80);
 			LCD_Str(str);
 			LCD_Str("ms");
