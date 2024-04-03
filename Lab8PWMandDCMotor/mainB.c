@@ -25,7 +25,7 @@ int main(void) {
 		} else if (input == '0' || input == '1' || input == '2' || input == '3' || input == '4' || input == '5' || input == '6' || input == '7' || input == '8' || input == '9'){
 			LCD_command(0x81);
 			LCD_data(input);
-			uint32_t limit = ((input-0x30)/10)*3999;
+			uint32_t limit = (input-0x30)*399;
 			MOT12_Speed_Set(limit);
 		}
 	}
