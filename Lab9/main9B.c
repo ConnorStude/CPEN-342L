@@ -57,7 +57,7 @@ int main(void){
 		num=input;
 		GPIOD->DATA |= 0x02;
 		GPIOD->DATA &= ~0x02;	
-		num = value*(num/15);
+		num = value*num/15;
 		lowDgt=((unsigned char)num);
 		highDgt=((unsigned char)(num>>8));
 		SSI1DAC_Write(highDgt);
