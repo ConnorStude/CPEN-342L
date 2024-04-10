@@ -1,4 +1,6 @@
 #include "TM4C123GH6PM.h"
+#include <stdio.h>
+#include "LCD.h"
 
 void SSI1DAC_Init(void){
 	SYSCTL->RCGCSSI|=2;
@@ -20,27 +22,47 @@ void SSI1DAC_Write(unsigned char data){
 	while(SSI1->SR&0x10);
 }
 
+void hex2dec(unsigned char x,char *str)
+{
+	sprintf(str,"%d",x);
+	LCD_Str(str);//sends to LCD
+	LCD_data('V');
+}
+
+unsigned char DIPRead(){	
+	return (GPIOF->DATA&0x1E)>>1;
+}	
+
+
+void DIPinit(){
+	SYSCTL->RCGCGPIO|=0x20;
+	while ((SYSCTL->RCGCGPIO&0x20)==0){}
+	GPIOF->DEN|=0x1E;	
+	GPIOF->DIR&=~0x1E;
+}
+
 int main(void){
-	SSI1DAC_Init();
-	while(1){
-		volatile unsigned char highDgt=0, lowDgt=0;
-		for (int i =0;i<4095;i++)
-		{
-			GPIOD->DATA |= 0x02;
-			GPIOD->DATA &= ~0x02;
-			lowDgt = (unsigned char)i;
-			highDgt = (unsigned char)(i>>8);
-			SSI1DAC_Write(highDgt);
-			SSI1DAC_Write(lowDgt);
-		}
-		for (int j =4095;j>0;j--)
-		{
-			GPIOD->DATA |= 0x02;
-			GPIOD->DATA &= ~0x02;
-			lowDgt = (unsigned char)j;
-			highDgt = (unsigned char)(j>>8);
-			SSI1DAC_Write(highDgt);
-			SSI1DAC_Write(lowDgt);
-		}
+	LCD_init();
+	DIPinit();
+  SSI1DAC_Init();
+	unsigned char input;
+	char* result;
+	volatile uint16_t num;
+	volatile unsigned int value = 4095;
+	volatile unsigned char highDgt=0, lowDgt=0;
+	while (1)
+	{	
+		input=DIPRead();
+		hex2dec(input,result);//converts to dec and sends to LCD
+		num=input;
+		GPIOD->DATA |= 0x02;
+		GPIOD->DATA &= ~0x02;	
+		num = value*(num/15);
+		lowDgt=((unsigned char)num);
+		highDgt=((unsigned char)(num>>8));
+		SSI1DAC_Write(highDgt);
+		SSI1DAC_Write(lowDgt);
+		delayMs(100);
+		LCD_command(0x01);//clear display	
 	}
 }
